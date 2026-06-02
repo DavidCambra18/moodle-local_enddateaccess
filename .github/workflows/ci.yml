@@ -1,0 +1,129 @@
+name: Moodle Plugin CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-legacy:
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php: '7.2'
+            moodle-branch: 'MOODLE_35_STABLE'
+          - php: '7.3'
+            moodle-branch: 'MOODLE_39_STABLE'
+          - php: '7.4'
+            moodle-branch: 'MOODLE_311_STABLE'
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mbstring, mysqli, gd, xml, curl, zip, intl
+      - name: Setup CI v3
+        run: |
+          composer create-project -n --no-dev --prefer-dist moodlehq/moodle-plugin-ci ci ^3
+          echo $(cd ci/bin; pwd) >> $GITHUB_PATH
+      - name: Install Moodle
+        run: moodle-plugin-ci install -vvv
+        env:
+          DB: mysqli
+      - name: Run Tests
+        run: |
+          moodle-plugin-ci phplint
+          moodle-plugin-ci phpcpd
+          moodle-plugin-ci phpcs
+          moodle-plugin-ci phpdoc
+
+  test-modern:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php: '8.0'
+            moodle-branch: 'MOODLE_400_STABLE'
+          - php: '8.1'
+            moodle-branch: 'MOODLE_401_STABLE'
+          - php: '8.2'
+            moodle-branch: 'MOODLE_402_STABLE'
+          - php: '8.3'
+            moodle-branch: 'MOODLE_404_STABLE'
+          - php: '8.4'
+            moodle-branch: 'main'
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mbstring, mysqli, gd, xml, curl, zip, intl, sodium
+      - name: Setup CI v4
+        run: |
+          composer create-project -n --no-dev --prefer-dist moodlehq/moodle-plugin-ci ci ^4
+          echo $(cd ci/bin; pwd) >> $GITHUB_PATH
+      - name: Install Moodle
+        run: moodle-plugin-ci install -vvv
+        env:
+          DB: mysqli
+      - name: Run Tests
+        run: |
+          moodle-plugin-ci phplint
+          moodle-plugin-ci phpcpd
+          moodle-plugin-ci phpcs
+          moodle-plugin-ci phpdoc
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [test-legacy, test-modern]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    env:
+      PLUGIN: local_enddateaccess
+      CURL: curl -s
+      ENDPOINT: https://moodle.org/webservice/rest/server.php
+      TOKEN: ${{ secrets.MOODLE_ORG_TOKEN }}
+      FUNCTION: local_plugins_add_version
+    permissions:
+      contents: write
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Create Moodle-ready zip bundle
+        run: |
+          mkdir enddateaccess
+          git archive HEAD | tar -x -C enddateaccess
+          zip -r enddateaccess.zip enddateaccess
+
+      - name: Release to GitHub
+        id: github-release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: enddateaccess.zip
+          generate_release_notes: true
+          prerelease: ${{contains(github.ref, '-beta')}}
+
+      - name: Upload to Moodle.org Plugin Directory
+        if: github.event_name == 'push' && !contains(github.ref, '-beta')
+        run: |
+          TAGNAME="${GITHUB_REF##*/}"
+          ZIPURL="${{ fromJSON(steps.github-release.outputs.assets)[0].browser_download_url }}"
+          
+          RESPONSE=$(${CURL} ${ENDPOINT} --data-urlencode "wstoken=${TOKEN}" \
+                                         --data-urlencode "wsfunction=${FUNCTION}" \
+                                         --data-urlencode "moodlewsrestformat=json" \
+                                         --data-urlencode "frankenstyle=${PLUGIN}" \
+                                         --data-urlencode "zipurl=${ZIPURL}" \
+                                         --data-urlencode "vcssystem=git" \
+                                         --data-urlencode "vcsrepositoryurl=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}" \
+                                         --data-urlencode "vcstag=${TAGNAME}" \
+                                         --data-urlencode "changelogurl=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commits/${TAGNAME}")
+          
+          echo "Response from Moodle: ${RESPONSE}"
+          echo ${RESPONSE} | jq --exit-status ".id" > /dev/null
