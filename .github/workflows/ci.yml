@@ -9,6 +9,17 @@ on:
 jobs:
   test-legacy:
     runs-on: ubuntu-20.04
+    services:
+      mariadb:
+        image: mariadb:10
+        env:
+          MYSQL_USER: 'root'
+          MYSQL_ALLOW_EMPTY_PASSWORD: "true"
+          MYSQL_CHARACTER_SET_SERVER: "utf8mb4"
+          MYSQL_COLLATION_SERVER: "utf8mb4_unicode_ci"
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval 10s --health-timeout 5s --health-retries 3
     strategy:
       fail-fast: false
       matrix:
@@ -31,7 +42,7 @@ jobs:
           composer create-project -n --no-dev --prefer-dist moodlehq/moodle-plugin-ci ci ^3
           echo $(cd ci/bin; pwd) >> $GITHUB_PATH
       - name: Install Moodle
-        run: moodle-plugin-ci install -vvv
+        run: moodle-plugin-ci install --db-host=127.0.0.1 -vvv
         env:
           DB: mysqli
           MOODLE_BRANCH: ${{ matrix.moodle-branch }}
@@ -44,6 +55,17 @@ jobs:
 
   test-modern:
     runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:10
+        env:
+          MYSQL_USER: 'root'
+          MYSQL_ALLOW_EMPTY_PASSWORD: "true"
+          MYSQL_CHARACTER_SET_SERVER: "utf8mb4"
+          MYSQL_COLLATION_SERVER: "utf8mb4_unicode_ci"
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval 10s --health-timeout 5s --health-retries 3
     strategy:
       fail-fast: false
       matrix:
@@ -70,7 +92,7 @@ jobs:
           composer create-project -n --no-dev --prefer-dist moodlehq/moodle-plugin-ci ci ^4
           echo $(cd ci/bin; pwd) >> $GITHUB_PATH
       - name: Install Moodle
-        run: moodle-plugin-ci install -vvv
+        run: moodle-plugin-ci install --db-host=127.0.0.1 -vvv
         env:
           DB: mysqli
           MOODLE_BRANCH: ${{ matrix.moodle-branch }}
