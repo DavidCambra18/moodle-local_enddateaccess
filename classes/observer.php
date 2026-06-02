@@ -1,7 +1,20 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
- * Event observer listener for course updates.
- *
  * @package    local_enddateaccess
  * @copyright  2026 David Cambra
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -30,23 +43,23 @@ class observer {
             return;
         }
 
-        $hasEnddate = !empty($course->enddate);
+        $hasenddate = !empty($course->enddate);
 
         require_once($CFG->dirroot . '/completion/criteria/completion_criteria_activity.php');
         $sql = "SELECT moduleinstance FROM {course_completion_criteria} WHERE course = ? AND criteriatype = ?";
         $criteria = $DB->get_records_sql($sql, [$courseid, COMPLETION_CRITERIA_TYPE_ACTIVITY]);
 
-        $checkedModules = [];
+        $checkedmodules = [];
         if (!empty($criteria)) {
             foreach ($criteria as $c) {
-                $checkedModules[] = $c->moduleinstance;
+                $checkedmodules[] = $c->moduleinstance;
             }
         }
 
-        $allModules = $DB->get_records('course_modules', ['course' => $courseid]);
+        $allmodules = $DB->get_records('course_modules', ['course' => $courseid]);
 
-        foreach ($allModules as $cm) {
-            $isChecked = in_array($cm->id, $checkedModules);
+        foreach ($allmodules as $cm) {
+            $ischecked = in_array($cm->id, $checkedmodules);
             $updated = false;
 
             $avail = [];
@@ -54,21 +67,21 @@ class observer {
                 $avail = json_decode($cm->availability, true);
             }
 
-            if ($isChecked && $hasEnddate) {
+            if ($ischecked && $hasenddate) {
                 $avail = self::add_date_restriction($avail, $course->enddate);
-                $newJson = json_encode($avail);
+                $newjson = json_encode($avail);
 
-                if ($cm->availability !== $newJson) {
-                    $cm->availability = $newJson;
+                if ($cm->availability !== $newjson) {
+                    $cm->availability = $newjson;
                     $updated = true;
                 }
             } else {
                 if (!empty($avail)) {
                     $avail = self::remove_date_restriction($avail);
-                    $newJson = empty($avail) ? null : json_encode($avail);
+                    $newjson = empty($avail) ? null : json_encode($avail);
 
-                    if ($cm->availability !== $newJson) {
-                        $cm->availability = $newJson;
+                    if ($cm->availability !== $newjson) {
+                        $cm->availability = $newjson;
                         $updated = true;
                     }
                 }
@@ -90,12 +103,12 @@ class observer {
      * @return array Updated availability data.
      */
     private static function add_date_restriction($avail, $enddate) {
-        $newCondition = ['type' => 'date', 'd' => '<', 't' => (int)$enddate];
+        $newcondition = ['type' => 'date', 'd' => '<', 't' => (int)$enddate];
 
         if (empty($avail)) {
             return [
                 'op' => '&',
-                'c' => [$newCondition],
+                'c' => [$newcondition],
                 'showc' => [true],
             ];
         }
@@ -113,12 +126,12 @@ class observer {
 
         if (!$found) {
             if (isset($avail['op']) && $avail['op'] === '&') {
-                $avail['c'][] = $newCondition;
+                $avail['c'][] = $newcondition;
                 $avail['showc'][] = true;
             } else {
                 $avail = [
                     'op' => '&',
-                    'c' => [$newCondition, $avail],
+                    'c' => [$newcondition, $avail],
                     'showc' => [true, false],
                 ];
             }
