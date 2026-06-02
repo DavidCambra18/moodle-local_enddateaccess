@@ -1,6 +1,6 @@
 <?php
 /**
- * Observer for local_enddateaccess
+ * Event observer listener for course updates.
  *
  * @package    local_enddateaccess
  * @copyright  2026 David Cambra
@@ -8,54 +8,67 @@
  */
 
 namespace local_enddateaccess;
-defined('MOODLE_INTERNAL') || die();
 
+/**
+ * Observer class for course end date access restrictions.
+ */
 class observer {
+
+    /**
+     * Handles course updated events to sync restrictions.
+     *
+     * @param \core\event\base $event The course update event.
+     * @return void
+     */
     public static function course_updated($event) {
         global $DB, $CFG;
 
         $courseid = $event->courseid;
         $course = $DB->get_record('course', ['id' => $courseid], 'id, enddate');
-        
-        $has_enddate = !empty($course->enddate);
 
-        require_once($CFG->dirroot.'/completion/criteria/completion_criteria_activity.php');
+        if (!$course) {
+            return;
+        }
+
+        $hasEnddate = !empty($course->enddate);
+
+        require_once($CFG->dirroot . '/completion/criteria/completion_criteria_activity.php');
         $sql = "SELECT moduleinstance FROM {course_completion_criteria} WHERE course = ? AND criteriatype = ?";
         $criteria = $DB->get_records_sql($sql, [$courseid, COMPLETION_CRITERIA_TYPE_ACTIVITY]);
 
-        $checked_modules = [];
+        $checkedModules = [];
         if (!empty($criteria)) {
             foreach ($criteria as $c) {
-                $checked_modules[] = $c->moduleinstance;
+                $checkedModules[] = $c->moduleinstance;
             }
         }
 
-        $all_modules = $DB->get_records('course_modules', ['course' => $courseid]);
+        $allModules = $DB->get_records('course_modules', ['course' => $courseid]);
 
-        foreach ($all_modules as $cm) {
-            $is_checked = in_array($cm->id, $checked_modules);
+        foreach ($allModules as $cm) {
+            $isChecked = in_array($cm->id, $checkedModules);
             $updated = false;
-            
+
             $avail = [];
             if (!empty($cm->availability)) {
                 $avail = json_decode($cm->availability, true);
             }
 
-            if ($is_checked && $has_enddate) {
+            if ($isChecked && $hasEnddate) {
                 $avail = self::add_date_restriction($avail, $course->enddate);
-                $new_json = json_encode($avail);
-                
-                if ($cm->availability !== $new_json) {
-                    $cm->availability = $new_json;
+                $newJson = json_encode($avail);
+
+                if ($cm->availability !== $newJson) {
+                    $cm->availability = $newJson;
                     $updated = true;
                 }
             } else {
                 if (!empty($avail)) {
                     $avail = self::remove_date_restriction($avail);
-                    $new_json = empty($avail) ? null : json_encode($avail);
-                    
-                    if ($cm->availability !== $new_json) {
-                        $cm->availability = $new_json;
+                    $newJson = empty($avail) ? null : json_encode($avail);
+
+                    if ($cm->availability !== $newJson) {
+                        $cm->availability = $newJson;
                         $updated = true;
                     }
                 }
@@ -69,14 +82,21 @@ class observer {
         rebuild_course_cache($courseid);
     }
 
+    /**
+     * Adds a date restriction condition to the availability data.
+     *
+     * @param array $avail Existing availability data.
+     * @param int $enddate The course end date timestamp.
+     * @return array Updated availability data.
+     */
     private static function add_date_restriction($avail, $enddate) {
-        $new_condition = ['type' => 'date', 'd' => '<', 't' => (int)$enddate];
+        $newCondition = ['type' => 'date', 'd' => '<', 't' => (int)$enddate];
 
         if (empty($avail)) {
             return [
                 'op' => '&',
-                'c' => [$new_condition],
-                'showc' => [true]
+                'c' => [$newCondition],
+                'showc' => [true],
             ];
         }
 
@@ -93,13 +113,13 @@ class observer {
 
         if (!$found) {
             if (isset($avail['op']) && $avail['op'] === '&') {
-                $avail['c'][] = $new_condition;
+                $avail['c'][] = $newCondition;
                 $avail['showc'][] = true;
             } else {
                 $avail = [
                     'op' => '&',
-                    'c' => [$new_condition, $avail],
-                    'showc' => [true, false]
+                    'c' => [$newCondition, $avail],
+                    'showc' => [true, false],
                 ];
             }
         }
@@ -107,27 +127,33 @@ class observer {
         return $avail;
     }
 
+    /**
+     * Removes the date restriction condition from the availability data.
+     *
+     * @param array $avail Existing availability data.
+     * @return array Updated availability data.
+     */
     private static function remove_date_restriction($avail) {
-         if (empty($avail) || !isset($avail['c'])) {
-             return $avail;
-         }
+        if (empty($avail) || !isset($avail['c'])) {
+            return $avail;
+        }
 
-         if (isset($avail['op']) && $avail['op'] === '&') {
-             foreach ($avail['c'] as $key => $cond) {
-                 if (isset($cond['type']) && $cond['type'] === 'date' && isset($cond['d']) && $cond['d'] === '<') {
-                     unset($avail['c'][$key]);
-                     unset($avail['showc'][$key]);
-                 }
-             }
-             
-             $avail['c'] = array_values($avail['c']);
-             $avail['showc'] = array_values($avail['showc']);
+        if (isset($avail['op']) && $avail['op'] === '&') {
+            foreach ($avail['c'] as $key => $cond) {
+                if (isset($cond['type']) && $cond['type'] === 'date' && isset($cond['d']) && $cond['d'] === '<') {
+                    unset($avail['c'][$key]);
+                    unset($avail['showc'][$key]);
+                }
+            }
 
-             if (empty($avail['c'])) {
-                 return [];
-             }
-         }
+            $avail['c'] = array_values($avail['c']);
+            $avail['showc'] = array_values($avail['showc']);
 
-         return $avail;
+            if (empty($avail['c'])) {
+                return [];
+            }
+        }
+
+        return $avail;
     }
 }
