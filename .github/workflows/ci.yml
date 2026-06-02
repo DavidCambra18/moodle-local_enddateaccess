@@ -48,6 +48,7 @@ jobs:
         env:
           DB: mariadb
           MOODLE_BRANCH: ${{ matrix.moodle-branch }}
+          IGNORE_PATHS: 'moodle,ci,.git,.github'
       - name: Run Tests
         run: |
           moodle-plugin-ci phplint
@@ -100,6 +101,7 @@ jobs:
         env:
           DB: mariadb
           MOODLE_BRANCH: ${{ matrix.moodle-branch }}
+          IGNORE_PATHS: 'moodle,ci,.git,.github'
       - name: Run Tests
         run: |
           moodle-plugin-ci phplint
