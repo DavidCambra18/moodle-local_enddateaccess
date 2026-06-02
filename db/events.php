@@ -15,6 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Local enddateaccess plugin.
+ *
  * @package    local_enddateaccess
  * @copyright  2026 David Cambra
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
