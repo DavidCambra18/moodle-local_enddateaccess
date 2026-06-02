@@ -37,6 +37,8 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           extensions: mbstring, mysqli, gd, xml, curl, zip, intl
+          ini-values: max_input_vars=5000
+          coverage: none
       - name: Setup CI v3
         run: |
           composer create-project -n --no-dev --prefer-dist moodlehq/moodle-plugin-ci ci ^3
@@ -44,7 +46,7 @@ jobs:
       - name: Install Moodle
         run: moodle-plugin-ci install --db-host=127.0.0.1 -vvv
         env:
-          DB: mysqli
+          DB: mariadb
           MOODLE_BRANCH: ${{ matrix.moodle-branch }}
       - name: Run Tests
         run: |
@@ -87,6 +89,8 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           extensions: mbstring, mysqli, gd, xml, curl, zip, intl, sodium
+          ini-values: max_input_vars=5000
+          coverage: none
       - name: Setup CI v4
         run: |
           composer create-project -n --no-dev --prefer-dist moodlehq/moodle-plugin-ci ci ^4
@@ -94,7 +98,7 @@ jobs:
       - name: Install Moodle
         run: moodle-plugin-ci install --db-host=127.0.0.1 -vvv
         env:
-          DB: mysqli
+          DB: mariadb
           MOODLE_BRANCH: ${{ matrix.moodle-branch }}
       - name: Run Tests
         run: |
