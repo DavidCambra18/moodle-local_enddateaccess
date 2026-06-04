@@ -28,7 +28,6 @@ namespace local_enddateaccess\privacy;
  * Privacy provider class for end date access plugin.
  */
 class provider implements \core_privacy\local\metadata\null_provider {
-
     /**
      * Returns the language string reason why this tool doesn't store user data.
      *
