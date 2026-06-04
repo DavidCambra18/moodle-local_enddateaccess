@@ -8,7 +8,7 @@ on:
 
 jobs:
   test-legacy:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     services:
       mariadb:
         image: mariadb:10
