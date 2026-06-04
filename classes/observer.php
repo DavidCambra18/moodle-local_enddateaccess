@@ -28,7 +28,6 @@ namespace local_enddateaccess;
  * Observer class for course end date access restrictions.
  */
 class observer {
-
     /**
      * Handles course updated events to sync restrictions.
      *
