@@ -24,14 +24,18 @@
 
 namespace local_enddateaccess;
 
-defined('MOODLE_INTERNAL') || die();
-
+/**
+ * Observer class for course events.
+ */
 class observer {
-
+    /**
+     * Handles the course updated event.
+     *
+     * @param \core\event\base $event The event.
+     */
     public static function course_updated(\core\event\base $event) {
         $task = new \local_enddateaccess\task\sync_enddate_task();
         $task->set_custom_data(['courseid' => $event->courseid]);
-        
         \core\task\manager::queue_adhoc_task($task);
     }
 }

@@ -24,10 +24,13 @@
 
 namespace local_enddateaccess\task;
 
-defined('MOODLE_INTERNAL') || die();
-
+/**
+ * Ad-hoc task to synchronize course end date restrictions.
+ */
 class sync_enddate_task extends \core\task\adhoc_task {
-
+    /**
+     * Executes the task.
+     */
     public function execute() {
         global $DB, $CFG;
 
@@ -86,12 +89,24 @@ class sync_enddate_task extends \core\task\adhoc_task {
 
             if ($updated) {
                 $DB->update_record('course_modules', $cm);
+
+                $fullcm = get_coursemodule_from_id('', $cm->id, $courseid);
+                if ($fullcm) {
+                    \core\event\course_module_updated::create_from_cm($fullcm)->trigger();
+                }
             }
         }
 
         rebuild_course_cache($courseid);
     }
 
+    /**
+     * Adds date restriction.
+     *
+     * @param array $avail The availability array.
+     * @param int $enddate The course end date.
+     * @return array
+     */
     private function add_date_restriction($avail, $enddate) {
         $newcondition = ['type' => 'date', 'd' => '<', 't' => (int)$enddate];
 
@@ -130,6 +145,12 @@ class sync_enddate_task extends \core\task\adhoc_task {
         return $avail;
     }
 
+    /**
+     * Removes date restriction.
+     *
+     * @param array $avail The availability array.
+     * @return array
+     */
     private function remove_date_restriction($avail) {
         if (empty($avail) || !isset($avail['c'])) {
             return $avail;
