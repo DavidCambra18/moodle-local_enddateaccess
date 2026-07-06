@@ -24,6 +24,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+$string['clisuccess'] = 'Manual synchronization completed successfully.';
 $string['pluginname'] = 'Course End Date Restriction';
 $string['privacy:metadata'] = 'This plugin does not store any personal data.';
-$string['clisuccess'] = 'Manual synchronization completed successfully.';
