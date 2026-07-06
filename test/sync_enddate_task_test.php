@@ -27,8 +27,13 @@ namespace local_enddateaccess\tests;
 use advanced_testcase;
 use local_enddateaccess\task\sync_enddate_task;
 
+/**
+ * Test class for the sync enddate task.
+ */
 class sync_enddate_task_test extends advanced_testcase {
-
+    /**
+     * Test that the task correctly adds a date restriction to a module.
+     */
     public function test_task_execution_adds_restriction() {
         global $DB, $CFG;
         $this->resetAfterTest(true);
@@ -37,15 +42,15 @@ class sync_enddate_task_test extends advanced_testcase {
 
         $generator = $this->getDataGenerator();
         $futuredate = time() + (7 * 24 * 60 * 60);
-        
+
         $course = $generator->create_course([
-            'enablecompletion' => 1, 
-            'enddate' => $futuredate
+            'enablecompletion' => 1,
+            'enddate' => $futuredate,
         ]);
-        
+
         $assign = $generator->create_module('assign', [
-            'course' => $course->id, 
-            'completion' => 1
+            'course' => $course->id,
+            'completion' => 1,
         ]);
 
         $criteria = new \stdClass();
@@ -54,18 +59,18 @@ class sync_enddate_task_test extends advanced_testcase {
         $criteria->module = 'assign';
         $criteria->moduleinstance = $assign->cmid;
         $DB->insert_record('course_completion_criteria', $criteria);
-        
+
         $task = new sync_enddate_task();
         $task->set_custom_data((object)['courseid' => $course->id]);
-        
+
         ob_start();
         $task->execute();
         ob_end_clean();
 
         $cm = $DB->get_record('course_modules', ['id' => $assign->cmid]);
-        
+
         $this->assertNotEmpty($cm->availability);
-        
+
         $avail = json_decode($cm->availability, true);
         $this->assertEquals('&', $avail['op']);
         $this->assertEquals('date', $avail['c'][0]['type']);
