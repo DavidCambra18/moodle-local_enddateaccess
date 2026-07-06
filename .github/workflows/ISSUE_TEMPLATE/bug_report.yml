@@ -1,0 +1,39 @@
+name: Bug Report
+description: Report a bug to help us improve the plugin
+title: "[BUG] "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+  - type: input
+    id: moodle_version
+    attributes:
+      label: Moodle Version
+      placeholder: e.g., 4.1.2
+    validations:
+      required: true
+  - type: input
+    id: php_version
+    attributes:
+      label: PHP Version
+      placeholder: e.g., 8.1
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      placeholder: |
+        1. Go to '...'
+        2. Click on '....'
+        3. See error
+    validations:
+      required: true
