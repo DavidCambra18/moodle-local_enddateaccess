@@ -24,6 +24,8 @@
 
 namespace local_enddateaccess\task;
 
+use local_enddateaccess\services\date_manager;
+
 /**
  * Ad-hoc task to synchronize course end date restrictions.
  */
@@ -32,147 +34,10 @@ class sync_enddate_task extends \core\task\adhoc_task {
      * Executes the task.
      */
     public function execute() {
-        global $DB, $CFG;
-
         $customdata = $this->get_custom_data();
         $courseid = $customdata->courseid;
 
-        $course = $DB->get_record('course', ['id' => $courseid], 'id, enddate');
-
-        if (!$course) {
-            return;
-        }
-
-        $hasenddate = !empty($course->enddate);
-
-        require_once($CFG->dirroot . '/completion/criteria/completion_criteria.php');
-        require_once($CFG->dirroot . '/completion/criteria/completion_criteria_activity.php');
-        $sql = "SELECT moduleinstance FROM {course_completion_criteria} WHERE course = ? AND criteriatype = ?";
-        $criteria = $DB->get_records_sql($sql, [$courseid, COMPLETION_CRITERIA_TYPE_ACTIVITY]);
-
-        $checkedmodules = [];
-        if (!empty($criteria)) {
-            foreach ($criteria as $c) {
-                $checkedmodules[] = $c->moduleinstance;
-            }
-        }
-
-        $allmodules = $DB->get_records('course_modules', ['course' => $courseid]);
-
-        foreach ($allmodules as $cm) {
-            $ischecked = in_array($cm->id, $checkedmodules);
-            $updated = false;
-            $avail = [];
-
-            if (!empty($cm->availability)) {
-                $avail = json_decode($cm->availability, true);
-            }
-
-            if ($ischecked && $hasenddate) {
-                $avail = $this->add_date_restriction($avail, $course->enddate);
-                $newjson = json_encode($avail);
-
-                if ($cm->availability !== $newjson) {
-                    $cm->availability = $newjson;
-                    $updated = true;
-                }
-            } else {
-                if (!empty($avail)) {
-                    $avail = $this->remove_date_restriction($avail);
-                    $newjson = empty($avail) ? null : json_encode($avail);
-
-                    if ($cm->availability !== $newjson) {
-                        $cm->availability = $newjson;
-                        $updated = true;
-                    }
-                }
-            }
-
-            if ($updated) {
-                $DB->update_record('course_modules', $cm);
-
-                $fullcm = get_coursemodule_from_id('', $cm->id, $courseid);
-                if ($fullcm) {
-                    \core\event\course_module_updated::create_from_cm($fullcm)->trigger();
-                }
-            }
-        }
-
-        rebuild_course_cache($courseid);
-    }
-
-    /**
-     * Adds date restriction.
-     *
-     * @param array $avail The availability array.
-     * @param int $enddate The course end date.
-     * @return array
-     */
-    private function add_date_restriction($avail, $enddate) {
-        $newcondition = ['type' => 'date', 'd' => '<', 't' => (int)$enddate];
-
-        if (empty($avail)) {
-            return [
-                'op' => '&',
-                'c' => [$newcondition],
-                'showc' => [true],
-            ];
-        }
-
-        $found = false;
-        if (isset($avail['op']) && $avail['op'] === '&' && isset($avail['c'])) {
-            foreach ($avail['c'] as $key => $cond) {
-                if (isset($cond['type']) && $cond['type'] === 'date' && isset($cond['d']) && $cond['d'] === '<') {
-                    $avail['c'][$key]['t'] = (int)$enddate;
-                    $found = true;
-                    break;
-                }
-            }
-        }
-
-        if (!$found) {
-            if (isset($avail['op']) && $avail['op'] === '&') {
-                $avail['c'][] = $newcondition;
-                $avail['showc'][] = true;
-            } else {
-                $avail = [
-                    'op' => '&',
-                    'c' => [$newcondition, $avail],
-                    'showc' => [true, false],
-                ];
-            }
-        }
-
-        return $avail;
-    }
-
-    /**
-     * Removes date restriction.
-     *
-     * @param array $avail The availability array.
-     * @return array
-     */
-    private function remove_date_restriction($avail) {
-        if (empty($avail) || !isset($avail['c'])) {
-            return $avail;
-        }
-
-        if (isset($avail['op']) && $avail['op'] === '&') {
-            foreach ($avail['c'] as $key => $cond) {
-                if (isset($cond['type']) && $cond['type'] === 'date' && isset($cond['d']) && $cond['d'] === '<') {
-                    unset($avail['c'][$key]);
-                    unset($avail['showc'][$key]);
-                }
-            }
-
-            $avail['c'] = array_values($avail['c']);
-            $avail['showc'] = array_values($avail['showc']);
-
-            if (empty($avail['c'])) {
-                return [];
-            }
-        }
-
-        return $avail;
+        $manager = new date_manager();
+        $manager->sync_course_dates($courseid);
     }
 }
