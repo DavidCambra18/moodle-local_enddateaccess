@@ -30,11 +30,11 @@ use local_enddateaccess\task\sync_enddate_task;
 /**
  * Test class for the sync enddate task.
  */
-class sync_enddate_task_test extends advanced_testcase {
+final class sync_enddate_task_test extends \advanced_testcase {
     /**
-     * Test that the task correctly adds a date restriction to a module.
+     * @covers \local_enddateaccess\task\sync_enddate_task::execute
      */
-    public function test_task_execution_adds_restriction() {
+    public function test_task_execution_adds_restriction(): void {
         global $DB, $CFG;
         $this->resetAfterTest(true);
 
