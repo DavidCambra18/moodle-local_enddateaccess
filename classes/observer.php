@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Local enddateaccess plugin.
+ * Event observer for local_enddateaccess.
  *
  * @package    local_enddateaccess
  * @copyright  2026 David Cambra
@@ -24,18 +24,22 @@
 
 namespace local_enddateaccess;
 
+use local_enddateaccess\task\sync_enddate_task;
+
 /**
- * Observer class for course events.
+ * Observer class.
  */
 class observer {
+
     /**
-     * Handles the course updated event.
+     * Triggered when course settings or completion are updated.
      *
-     * @param \core\event\base $event The event.
+     * @param \core\event\base $event The triggered event.
      */
-    public static function course_updated(\core\event\base $event) {
-        $task = new \local_enddateaccess\task\sync_enddate_task();
-        $task->set_custom_data(['courseid' => $event->courseid]);
+    public static function course_updated(\core\event\base $event): void {
+        $task = new sync_enddate_task();
+        $task->set_custom_data((object)['courseid' => $event->courseid]);
+        
         \core\task\manager::queue_adhoc_task($task);
     }
 }
