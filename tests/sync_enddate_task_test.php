@@ -38,6 +38,7 @@ class sync_enddate_task_test extends advanced_testcase {
         global $DB, $CFG;
         $this->resetAfterTest(true);
 
+        require_once($CFG->dirroot . '/completion/criteria/completion_criteria.php');
         require_once($CFG->dirroot . '/completion/criteria/completion_criteria_activity.php');
 
         $generator = $this->getDataGenerator();

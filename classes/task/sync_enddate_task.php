@@ -45,6 +45,7 @@ class sync_enddate_task extends \core\task\adhoc_task {
 
         $hasenddate = !empty($course->enddate);
 
+        require_once($CFG->dirroot . '/completion/criteria/completion_criteria.php');
         require_once($CFG->dirroot . '/completion/criteria/completion_criteria_activity.php');
         $sql = "SELECT moduleinstance FROM {course_completion_criteria} WHERE course = ? AND criteriatype = ?";
         $criteria = $DB->get_records_sql($sql, [$courseid, COMPLETION_CRITERIA_TYPE_ACTIVITY]);
