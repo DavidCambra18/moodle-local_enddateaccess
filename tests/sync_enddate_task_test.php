@@ -32,6 +32,8 @@ use local_enddateaccess\task\sync_enddate_task;
  */
 final class sync_enddate_task_test extends \advanced_testcase {
     /**
+     * Test that the task adds a date restriction to the module.
+     *
      * @covers \local_enddateaccess\task\sync_enddate_task::execute
      */
     public function test_task_execution_adds_restriction(): void {
