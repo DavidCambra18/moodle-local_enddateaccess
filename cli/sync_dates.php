@@ -27,7 +27,13 @@ define('CLI_SCRIPT', true);
 require(__DIR__ . '/../../../config.php');
 require_once($CFG->libdir . '/clilib.php');
 
-$task = new \local_enddateaccess\task\sync_enddate_task();
-$task->execute();
+use local_enddateaccess\services\date_manager;
+
+$courses = $DB->get_records('course', ['enablecompletion' => 1], '', 'id');
+$manager = new date_manager();
+
+foreach ($courses as $course) {
+    $manager->sync_course_dates($course->id);
+}
 
 cli_writeln(get_string('clisuccess', 'local_enddateaccess'));
