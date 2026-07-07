@@ -28,7 +28,6 @@ namespace local_enddateaccess\services;
  * Date manager service class.
  */
 class date_manager {
-
     /**
      * Synchronizes course end dates with module availability.
      *

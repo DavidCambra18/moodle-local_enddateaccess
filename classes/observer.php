@@ -30,7 +30,6 @@ use local_enddateaccess\task\sync_enddate_task;
  * Observer class.
  */
 class observer {
-
     /**
      * Triggered when course settings or completion are updated.
      *
@@ -39,7 +38,7 @@ class observer {
     public static function course_updated(\core\event\base $event): void {
         $task = new sync_enddate_task();
         $task->set_custom_data((object)['courseid' => $event->courseid]);
-        
+
         \core\task\manager::queue_adhoc_task($task);
     }
 }
