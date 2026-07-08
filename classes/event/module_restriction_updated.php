@@ -26,23 +26,43 @@ namespace local_enddateaccess\event;
 
 use core\event\base;
 
+/**
+ * Module restriction updated event class.
+ */
 class module_restriction_updated extends base {
-
+    /**
+     * Init method.
+     */
     protected function init(): void {
         $this->data['crud'] = 'u';
         $this->data['edulevel'] = self::LEVEL_TEACHING;
         $this->data['objecttable'] = 'course_modules';
     }
 
+    /**
+     * Returns localized event name.
+     *
+     * @return string
+     */
     public static function get_name(): string {
         return get_string('eventrestrictionupdated', 'local_enddateaccess');
     }
 
+    /**
+     * Returns description of what happened.
+     *
+     * @return string
+     */
     public function get_description(): string {
         return "The plugin updated the date restriction for the course module with id '{$this->objectid}' " .
             "in the course with id '{$this->courseid}'.";
     }
 
+    /**
+     * Get URL related to the action.
+     *
+     * @return \moodle_url
+     */
     public function get_url(): \moodle_url {
         return new \moodle_url('/course/modedit.php', ['update' => $this->objectid]);
     }
