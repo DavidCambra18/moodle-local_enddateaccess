@@ -22,11 +22,27 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+namespace local_enddateaccess\event;
 
-$string['clisuccess'] = 'Sincronización manual completada con éxito.';
-$string['pluginname'] = 'Restricción por Fecha de Fin de Curso';
-$string['privacy:metadata'] = 'Este plugin no almacena ningún dato personal.';
-$string['enablesync'] = 'Activar sincronización automática';
-$string['enablesync_desc'] = 'Si está activado, el plugin aplicará automáticamente restricciones de fecha a los módulos basándose en la fecha de finalización del curso.';
-$string['eventrestrictionupdated'] = 'Restricción de fecha del módulo actualizada automáticamente';
+use core\event\base;
+
+class module_restriction_updated extends base {
+
+    protected function init(): void {
+        $this->data['crud'] = 'u';
+        $this->data['edulevel'] = self::LEVEL_TEACHING;
+        $this->data['objecttable'] = 'course_modules';
+    }
+
+    public static function get_name(): string {
+        return get_string('eventrestrictionupdated', 'local_enddateaccess');
+    }
+
+    public function get_description(): string {
+        return "The plugin updated the date restriction for the course module with id '{$this->objectid}' in the course with id '{$this->courseid}'.";
+    }
+
+    public function get_url(): \moodle_url {
+        return new \moodle_url('/course/modedit.php', ['update' => $this->objectid]);
+    }
+}

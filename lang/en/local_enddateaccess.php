@@ -29,3 +29,4 @@ $string['pluginname'] = 'Course End Date Restriction';
 $string['privacy:metadata'] = 'This plugin does not store any personal data.';
 $string['enablesync'] = 'Enable automatic synchronization';
 $string['enablesync_desc'] = 'If enabled, the plugin will automatically apply date restrictions to course modules based on the course end date.';
+$string['eventrestrictionupdated'] = 'Module date restriction updated automatically';

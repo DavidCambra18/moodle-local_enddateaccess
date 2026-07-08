@@ -97,6 +97,12 @@ class date_manager {
                 $fullcm = get_coursemodule_from_id('', $cm->id, $courseid);
                 if ($fullcm) {
                     \core\event\course_module_updated::create_from_cm($fullcm)->trigger();
+                    
+                    \local_enddateaccess\event\module_restriction_updated::create([
+                        'objectid' => $cm->id,
+                        'context' => \context_module::instance($cm->id),
+                        'courseid' => $courseid,
+                    ])->trigger();
                 }
             }
         }
