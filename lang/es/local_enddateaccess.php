@@ -25,8 +25,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $string['clisuccess'] = 'Sincronización manual completada con éxito.';
-$string['pluginname'] = 'Restricción por Fecha de Fin de Curso';
-$string['privacy:metadata'] = 'Este plugin no almacena ningún dato personal.';
 $string['enablesync'] = 'Activar sincronización automática';
 $string['enablesync_desc'] = 'Si está activado, el plugin aplicará automáticamente restricciones de fecha a los módulos basándose en la fecha de finalización del curso.';
 $string['eventrestrictionupdated'] = 'Restricción de fecha del módulo actualizada automáticamente';
+$string['pluginname'] = 'Restricción por Fecha de Fin de Curso';
+$string['privacy:metadata'] = 'Este plugin no almacena ningún dato personal.';
