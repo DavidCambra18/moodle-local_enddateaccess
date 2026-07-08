@@ -20,6 +20,8 @@ Instead of manually editing the deadline for every single activity when a course
 * **Safe Merging (Non-destructive):** The plugin intelligently parses the existing availability JSON. It safely adds or updates the date restriction without overwriting or destroying existing conditions (e.g., group restrictions, grade requirements, or user profiles).
 * **Targeted Action:** Only applies restrictions to activities that have course completion criteria enabled, leaving optional resources untouched.
 * **Cleanup:** If the completion tracking is removed from a module, the plugin automatically removes the injected date restriction while keeping any other conditions intact.
+* **Global Toggle:** Administrators can easily enable or disable the automatic synchronization globally via the plugin settings without uninstalling it.
+* **Audit Logging:** Triggers custom Moodle log events whenever a module restriction is automatically updated, ensuring full traceability for site administrators.
 
 ## 🧠 How the Logic Works (Combined Dates)
 
@@ -34,13 +36,22 @@ The plugin is designed to work seamlessly with manual restrictions using an `AND
 3. Upload or move the `enddateaccess` folder into the `local/` directory of your Moodle installation.
 4. Log in as an administrator and go to **Site administration > Notifications** (or run the upgrade script via CLI) to complete the installation process.
 
-## ⚙️ Usage
+## ⚙️ Configuration & Usage
 
-The plugin works silently in the background. To trigger it:
+Once installed, the plugin works silently in the background.
+
+**Global Settings:**
+Go to **Site administration > Plugins > Local plugins > Course End Date Restriction**. Here you can toggle the **Enable automatic synchronization** setting.
+
+**Triggering the Sync:**
 1. Ensure your course has an **End date** set in the course settings.
 2. Go to **Course administration > Course completion** and select the activities that are required to complete the course.
 3. Save the changes and trigger a course update (by saving the course settings). 
-4. The plugin will automatically append the date restriction in the background.
+4. The plugin will automatically append the date restriction in the background. Check the course or system logs to see the execution details.
+
+## 🐛 Reporting Bugs and Feature Requests
+
+We use GitHub Issue Templates to keep track of bugs and enhancements. If you find a bug or have an idea for a new feature, please go to the **Issues** tab of this repository and click **New issue**. Select the appropriate template and fill out the required information (like your Moodle and PHP versions) so we can help you faster.
 
 ## 🛠️ Requirements
 
