@@ -34,6 +34,10 @@ class date_manager {
      * @param int $courseid The course ID.
      */
     public function sync_course_dates(int $courseid): void {
+        if (!get_config('local_enddateaccess', 'enable_sync')) {
+            return;
+        }
+        
         global $DB, $CFG;
 
         $course = $DB->get_record('course', ['id' => $courseid], 'id, enddate');
