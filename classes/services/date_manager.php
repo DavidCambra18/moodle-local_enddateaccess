@@ -37,7 +37,7 @@ class date_manager {
         if (!get_config('local_enddateaccess', 'enable_sync')) {
             return;
         }
-        
+
         global $DB, $CFG;
 
         $course = $DB->get_record('course', ['id' => $courseid], 'id, enddate');
@@ -97,7 +97,7 @@ class date_manager {
                 $fullcm = get_coursemodule_from_id('', $cm->id, $courseid);
                 if ($fullcm) {
                     \core\event\course_module_updated::create_from_cm($fullcm)->trigger();
-                    
+
                     \local_enddateaccess\event\module_restriction_updated::create([
                         'objectid' => $cm->id,
                         'context' => \context_module::instance($cm->id),

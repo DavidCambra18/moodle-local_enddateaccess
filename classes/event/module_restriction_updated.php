@@ -39,7 +39,8 @@ class module_restriction_updated extends base {
     }
 
     public function get_description(): string {
-        return "The plugin updated the date restriction for the course module with id '{$this->objectid}' in the course with id '{$this->courseid}'.";
+        return "The plugin updated the date restriction for the course module with id '{$this->objectid}' " .
+            "in the course with id '{$this->courseid}'.";
     }
 
     public function get_url(): \moodle_url {
