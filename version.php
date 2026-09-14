@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_enddateaccess';
-$plugin->version   = 2026070800;
+$plugin->version   = 2026091400;
 $plugin->requires  = 2018051700;
 $plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = '1.1.0';
+$plugin->release   = '1.1.1';
