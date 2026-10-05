@@ -6,7 +6,7 @@
 
 [![Moodle Plugin CI](https://github.com/DavidCambra18/moodle-local_enddateaccess/actions/workflows/ci.yml/badge.svg)](https://github.com/DavidCambra18/moodle-local_enddateaccess/actions/workflows/ci.yml)
 [![Moodle.org](https://img.shields.io/badge/Moodle.org-Plugin_Directory-F98012?logo=moodle)](https://moodle.org/plugins/local_enddateaccess)
-[![Moodle Versions](https://img.shields.io/badge/Moodle-3.5%20to%204.4-orange.svg)](https://moodle.org/plugins/local_enddateaccess)
+[![Moodle Versions](https://img.shields.io/badge/Moodle-3.5%20to%205.3-orange.svg)](https://moodle.org/plugins/local_enddateaccess)
 
 ## 📖 Description
 
